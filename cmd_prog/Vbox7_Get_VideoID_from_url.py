@@ -1,4 +1,4 @@
-# this program is write on Python 2
+# This program is write on Python 2
 import re
 import sys
 import time
