@@ -1,15 +1,9 @@
-# This program is write on Python 2
-import re
-import sys
-import time
-import urllib
-import urllib2
-import json
+#! /usr/bin/env python
 
-api4 = 'http://api.vbox7.com/v4/?action='
-token4 = '&app_token=imperia_android_0.1.0_3rG7jk'
-
-url = str(raw_input("Enter URL:"))
+try:
+    url = str(raw_input("Enter Vbox7 - URL:"))
+except:
+    url = str(input("Enter Vbox7 - URL:"))
 url = url.split(":", 2)
 url = str(url[2])
 url = url.split("?", 1)
