@@ -47,12 +47,11 @@ headers={
 }
 
 
-play_movie = {'jsonrpc':'2.0','id':'1','method':'Player.Open','params':{'item':{'file': url}}}
 print("-----------------------------")
 kodi_json_request = json.loads(kodi_json_request)
 print (type(kodi_json_request))
 print (kodi_json_request)
 print("-----------------------------")
-x = requests.post(url, json = play_movie, auth = (kodi_username, kodi_password), headers=headers)
+x = requests.post(url, json = kodi_json_request, auth = (kodi_username, kodi_password), headers=headers)
 print (x.status_code)
 print (x.text)
