@@ -72,23 +72,14 @@ title = jsonrsp['title'] + '.sub'
 ###########################################################
 
 
-#jsonrsp = urllib2.urlopen(jsonrsp)
-#jsonrsp = jsonrsp.headers.getparam(failobj="utf-8")
-#.getparam("charset")
-#.read()
-
 jsonrsp = jsonrsp['items'][0]['video_subtitles_path']
 jsonrsp = requests.get(jsonrsp).content.decode(encoding="utf-8")
 jsonrsp = jsonrsp.split("var sSubsJson = '", 1)[-1].split("';", 1)[0]
 jsonrsp = jsonrsp.encode('raw_unicode_escape')
 jsonrsp = jsonrsp.decode('utf-8', 'ignore')
 jsonrsp = jsonrsp.replace('\\\"', '"').replace('\\\\"', '\\"')
-#jsonrsp = jsonrsp.encode('utf-8', 'ignore')
 jsonrsp = json.loads(jsonrsp)
 
-
-#jsonrsp.encoding = 'windows-1252'
-#jsonrsp.encoding = 'utf8'
 row = 0
 subs = ''
 for i in range(0, len(jsonrsp)):
@@ -112,12 +103,4 @@ else:
     file.write(subs)
     file.close()
     
-
 print("Subtitles from \'" + vbox7_url + "\' is download success in file \'" + title + "\'.")
-
-#print(type(jsonrsp))
-#print(jsonrsp)
-#print(subs)
-#print(jsonrsp.apparent_encoding)
-#print(jsonrsp.encoding)
-#print(jsonrsp.content.decode(encoding="utf-8"))
