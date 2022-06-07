@@ -1,0 +1,102 @@
+#! /usr/bin/env python
+# Variables  
+headers={
+    'Content-type':'application/json',
+    'Accept':'application/json'
+}
+query = None
+python_v = '0'
+api4 = 'http://api.vbox7.com/v4/?action='
+token4 = '&app_token=imperia_android_0.1.0_3rG7jk'
+kodi_address = ''
+
+# Import
+import os
+try:
+    # For Python 3.0 and later
+    from urllib.request import urlopen
+    python_v = '3'
+except ImportError:
+    # Fall back to Python 2's urllib2
+    from urllib2 import urlopen
+    python_v = '2'
+try:
+  import requests
+except ImportError:
+    if python_v == '2':
+        print ("Trying to Install required module: Python2 requests\n")
+        os.system('python -m pip install requests')
+    elif python_v == '3':
+        print ("Trying to Install required module: Python3 requests\n")
+        os.system('pip3 install requests')
+
+import requests     
+import json
+#
+def MAIN_MENU():
+        print("############ Main Menu ############")
+        print(" 1. Stream from \'www.vbox7.com\'")
+        print(" 2. Play/Pause")
+        print(" 3. Stop")
+        print(" 4. Exit")
+        print("############ ######### ############")
+
+# 
+#def STREAM_TO_KODI():
+        
+
+
+#
+def CLEAR_PLAYLIST():
+        query = json.loads('{"jsonrpc":"2.0","id":"1","method":"Player.Stop","params":{"playerid":1}}')
+        x = requests.post(url, json = query, auth = (kodi_username, kodi_password), headers=headers)
+        clear_pl = {'jsonrpc': '2.0', 'id': 1, 'method': 'Playlist.Clear', 'params': {'playlistid': 1}}
+        x = requests.post(url, json = clear_pl, auth = (kodi_username, kodi_password), headers=headers)
+        MAIN()
+
+# MAIN FUNCTION
+def MAIN():
+        #
+        if python_v == '3':
+            MAIN_MENU()
+            cmd = str(input(""))
+        else:
+            MAIN_MENU()
+            cmd = str(raw_input(""))
+        #
+        if cmd == '1':
+            print("Copy/Paste Vbox7 URL-address.")
+            if python_v == '3':
+                vbox_url = str(input(""))
+            elif python_v == '2':
+                vbox_url = str(raw_input(""))
+        #    
+        elif cmd == '2':
+            query = json.loads('{"jsonrpc":"2.0","id":"1","method":"Player.PlayPause","params":{"playerid":1}}')
+        elif cmd == '3':
+            CLEAR_PLAYLIST()
+        elif cmd == '4':
+            os._exit(0)
+        #
+        if query != None:
+            print("-----------------------------")
+            x = requests.post(url, json = query, auth = (kodi_username, kodi_password), headers=headers)
+            #print (type(x))
+            print (x.status_code)
+            print (x.text)
+        MAIN()
+
+if python_v == '3':
+    print("Python 3")
+    kodi_address = str(input("Enter Kodi IP-Address: "))
+    kodi_username = str(input("Enter Kodi Username: "))
+    kodi_password = str(input("Enter Kodi Password: "))
+else:
+    print("Python 2")
+    kodi_address = str(raw_input("Enter Kodi IP-Address: "))
+    kodi_username = str(raw_input("Enter Kodi Username: "))
+    kodi_password = str(raw_input("Enter Kodi Password: "))
+url = 'http://' + kodi_address +'/jsonrpc'
+
+
+MAIN()
