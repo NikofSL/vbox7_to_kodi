@@ -1,0 +1,203 @@
+#! /usr/bin/env python
+# Variables  
+headers={
+    'Content-type':'application/json',
+    'Accept':'application/json'
+}
+query = None
+python_v = '0'
+api4 = 'http://api.vbox7.com/v4/?action='
+token4 = '&app_token=imperia_android_0.1.0_3rG7jk'
+
+# Import
+import os
+try:
+    # For Python 3.0 and later
+    from urllib.request import urlopen
+    python_v = '3'
+except ImportError:
+    # Fall back to Python 2's urllib2
+    from urllib2 import urlopen
+    python_v = '2'
+try:
+  import requests
+except ImportError:
+    if python_v == '2':
+        print ("Trying to Install required module: Python2 requests\n")
+        os.system('python -m pip install requests')
+    elif python_v == '3':
+        print ("Trying to Install required module: Python3 requests\n")
+        os.system('pip3 install requests')
+
+import requests     
+import json
+#
+def SET_VARIABLE(c_d):
+        global kodi_address
+        kodi_address = data['device'][c_d]['device_adres']
+        global kodi_username
+        kodi_username = data['device'][c_d]['user_name']
+        global kodi_password
+        kodi_password = data['device'][c_d]['password']
+        global url
+        url = 'http://' + kodi_address +'/jsonrpc'
+#
+def CONNECT_MENU():
+        cls = lambda: os.system('cls')
+        cls()
+        print("### Connect to Device ###")
+        i = 1
+        c_d = 0
+        for device_name in data['device']:
+            print(str(i)+'. ' + device_name['device_name'] + ' - ' + device_name['device_adres'])
+            i = i+1
+        if python_v == '3':
+            c_d = int(input("Chose device: "))-1
+        elif python_v == '2':
+            c_d = int(raw_input("Choose a device: "))-1
+        SET_VARIABLE(c_d)
+#
+def MAIN_MENU():
+        cls = lambda: os.system('cls')
+        cls()
+        print("############ Main Menu ############")
+        print(" 1. Stream from \'www.vbox7.com\'")
+        print(" 2. Play/Pause")
+        print(" 3. Stop")
+        print(" 4. Add Device")
+        print(" 5. Log Out")
+        print(" 6. Exit")
+        print("############ ######### ############")
+
+# 
+def STREAM_TO_KODI():
+        if python_v == '3':
+            url_id = str(input("Enter Vbox7 - URL: "))
+        elif python_v == '2':
+            url_id = str(raw_input("Enter Vbox7 - URL:"))
+        if url_id[len(url_id)-1] == '#':
+            url_id = url_id[:len(url_id)-1]
+
+        api4 = 'http://api.vbox7.com/v4/?action='
+        token4 = '&app_token=imperia_android_0.1.0_3rG7jk'
+
+        url_id = url_id.split(":", 2)
+        url_id = str(url_id[2])
+        url_id = url_id.split("?", 1)
+        url_id = str(url_id[0])
+        if url_id[len(url_id)-1] == '#':
+            url_id = url_id[:len(url_id)-1]
+        d = api4 + 'r_video_play&video_md5=' + url_id + token4
+        discription = api4 + 'r_video_description&video_md5=' + url_id + token4
+        mybytes = urlopen(d).read()
+        mystr = mybytes.decode("utf8")
+        dbyte = urlopen(discription).read()
+        my_discription = dbyte.decode("utf8")
+
+        jsonrsp = json.loads('{'+mystr.split('{', 1)[-1])
+        jsonrsp2 = json.loads('{'+my_discription.split('{', 1)[-1])
+        try:
+            #Konvektirane na subs
+            if not (jsonrsp['items'][0]['video_subtitles_path'] == ''):
+                jsonrsp = json.loads(urllib2.urlopen(jsonrsp['items'][0]['video_subtitles_path']).read().split("var sSubsJson = '", 1)[-1].split("';", 1)[0].decode('utf8').encode('raw_unicode_escape').decode('utf-8', 'ignore').encode('utf-8', 'ignore').replace('\\\"', '"').replace('\\\\"', '\\"'))
+                row = 0
+                subs = ''
+                for i in range(0, len(jsonrsp)):
+                    row = row + 1
+                    subs += str(row) +'\n'
+                    subs += time.strftime("%H:%M:%S,000", time.gmtime(int(jsonrsp[i]['f']))) + ' --> ' + time.strftime("%H:%M:%S,000", time.gmtime(int(jsonrsp[i]['t']))) + '\n'
+                    subs += jsonrsp[i]['s'].encode('raw_unicode_escape', 'ignore').decode('unicode_escape', 'ignore').encode('utf8', 'ignore').replace('+',' ').replace('|','').replace('<br>','\n')
+                    subs += '\n\n'
+                st = 'true'
+                with open(srtsubs_path, "w") as subfile:
+                    subfile.write(subs)
+            else:
+                st = 'false'
+        except:
+            st = 'false'
+        #Zadavane na strim s optimalno kacestvo
+        try:
+            stream = jsonrsp['items'][0]['video_location'].replace('.mpd','_720.mp4')
+        except:
+            try:
+                jsonrsp3 = json.loads(urllib2.urlopen('https://www.vbox7.com/ajax/video/nextvideo.php?vid=' + url).read())
+                stream = jsonrsp3['options']['src'].replace('.mpd','_'+str(jsonrsp3['options']['highestRes'])+'.mp4')
+            except:
+                stream = 'http://m.vbox7.com/blank.mp4'
+
+        url_v = str(stream)
+        headers={
+            'Content-type':'application/json',
+            'Accept':'application/json'
+        }
+        play_movie = {'jsonrpc':'2.0','id':'1','method':'Player.Open','params':{'item':{'file': url_v}}}
+        print (url_v)
+        e = 0
+        try:
+            x = requests.post(url, json = play_movie, auth = (kodi_username, kodi_password), headers=headers)
+        #except requests.exceptions.Timeout:
+        # Maybe set up for a retry, or continue in a retry loop
+            #raise SystemExit(e)
+        #except requests.exceptions.TooManyRedirects:
+        # Tell the user their URL was bad and try a different one
+        except requests.exceptions.RequestException as e:
+        # catastrophic error. bail.
+            raise SystemExit(e)
+        MAIN()
+#
+def CLEAR_PLAYLIST():
+        query = json.loads('{"jsonrpc":"2.0","id":"1","method":"Player.Stop","params":{"playerid":1}}')
+        x = requests.post(url, json = query, auth = (kodi_username, kodi_password), headers=headers)
+        clear_pl = {'jsonrpc': '2.0', 'id': 1, 'method': 'Playlist.Clear', 'params': {'playlistid': 1}}
+        x = requests.post(url, json = clear_pl, auth = (kodi_username, kodi_password), headers=headers)
+        MAIN()
+def PLAY_PAUSE():
+        query = json.loads('{"jsonrpc":"2.0","id":"1","method":"Player.PlayPause","params":{"playerid":1}}')
+        x = requests.post(url, json = query, auth = (kodi_username, kodi_password), headers=headers)
+
+# MAIN FUNCTION
+def MAIN():
+        #
+        MAIN_MENU()
+        if python_v == '3':
+            cmd = str(input(""))
+        else:
+            cmd = str(raw_input(""))
+        #
+        if cmd == '1':
+            STREAM_TO_KODI()
+        #    
+        elif cmd == '2':
+            PLAY_PAUSE()
+        #
+        elif cmd == '3':
+            CLEAR_PLAYLIST()
+        #
+        elif cmd == '4':
+            ADD_DEVICE()
+        #
+        elif cmd == '5':
+            CONNECT_MENU()
+        #
+        elif cmd == '6':
+            os._exit(0)
+        
+        #
+        MAIN()
+def ADD_DEVICE():
+        if python_v == '3':
+            print("Python 3")
+            kodi_address = str(input("Enter Kodi IP-Address: "))
+            kodi_username = str(input("Enter Kodi Username: "))
+            kodi_password = str(input("Enter Kodi Password: "))
+        else:
+            print("Python 2")
+            kodi_address = str(raw_input("Enter Kodi IP-Address: "))
+            kodi_username = str(raw_input("Enter Kodi Username: "))
+            kodi_password = str(raw_input("Enter Kodi Password: "))
+
+
+with open('json_data.json') as json_file:
+    data = json.load(json_file)
+CONNECT_MENU()
+MAIN()
