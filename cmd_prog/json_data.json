@@ -1,0 +1,8 @@
+{
+	"device": 
+[
+{"device_adres": "192.168.1.1", "password": "osmc", "user_name": "osmc", "device_name": "Bedroom_tv"}, 
+{"device_adres": "192.168.1.2", "password": "osmc", "user_name": "osmc", "device_name": "Livingroom_tv"}, 
+{"device_adres": "192.168.1.3", "password": "osmc", "user_name": "osmc", "device_name": "Garden_tv"}
+]
+}
