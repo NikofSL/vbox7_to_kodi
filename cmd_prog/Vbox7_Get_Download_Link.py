@@ -22,8 +22,6 @@ except ImportError:
 
 import requests     
 import json
-api4 = 'http://api.vbox7.com/v4/?action='
-token4 = '&app_token=imperia_android_0.1.0_3rG7jk'
 print("#        www.vbox7.com")
 if python_v == '3':
     url_id = str(input("Enter URL:"))
