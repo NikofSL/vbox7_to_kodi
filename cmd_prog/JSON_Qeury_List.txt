@@ -1,0 +1,4 @@
+1.
+Clear Video(playlistid = 1) Playlist
+Изчистване на плаилиста
+{"jsonrpc": "2.0", "id": 1, "method": "Playlist.Clear", "params": {"playlistid": 1}}
