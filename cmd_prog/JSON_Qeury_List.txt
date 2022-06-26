@@ -1,4 +1,13 @@
+YouTube
 1.
 Clear Video(playlistid = 1) Playlist
 Изчистване на плаилиста
 {"jsonrpc": "2.0", "id": 1, "method": "Playlist.Clear", "params": {"playlistid": 1}}
+
+2.
+Добавяме елемент в плаилиста
+{"jsonrpc": "2.0", "id" :1, "method": "Playlist.Add", "params":{"playlistid":1, "item" :{ "file" : "plugin://plugin.video.youtube/play/?video_id=lsMQRaeKNDk" }}}
+
+3.
+Изпълняваме първият елемент от плаилиста
+{"jsonrpc": "2.0", "id": 1, "method": "Player.Open", "params":{"item":{"playlistid":1, "position" : 0}}}
