@@ -25,3 +25,18 @@ VBOX7
 
 4.
 {"jsonrpc":"2.0","method":"Input.SendText","params":["5e64466063"],"id":36}
+
+
+
+Отваря аддон в коди
+{"jsonrpc": "2.0", "method": "Addons.ExecuteAddon", "params": {"addonid": "plugin.video.vbox7"}, "id": 1 }
+
+1) 
+xbmc.executeJSONRPC('{"jsonrpc":"2.0","id":1,"method":"Addons.SetAddonEnabled","params":{"addonid":"pvr.iptvsimple","enabled":false}}')
+xbmc.executeJSONRPC('{"jsonrpc":"2.0","id":1,"method":"Addons.SetAddonEnabled","params":{"addonid":"pvr.iptvsimple","enabled":true}}')PythonCopy
+
+Works but will reset channel order, remove all groups etc
+
+2)
+addon = xbmcaddon.Addon('pvr.iptvsimple')
+addon.setSetting('anything', 'anything')
