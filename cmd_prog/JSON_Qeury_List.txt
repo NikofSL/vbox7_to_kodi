@@ -1,3 +1,9 @@
+Връща ID на плеилиста
+{"jsonrpc": "2.0", "method": "Playlist.GetPlaylists", "id": 1}
+
+
+
+
 YouTube
 1.
 Clear Video(playlistid = 1) Playlist
@@ -40,3 +46,4 @@ Works but will reset channel order, remove all groups etc
 2)
 addon = xbmcaddon.Addon('pvr.iptvsimple')
 addon.setSetting('anything', 'anything')
+
