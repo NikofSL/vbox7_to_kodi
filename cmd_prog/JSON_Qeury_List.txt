@@ -1,6 +1,8 @@
 Връща ID на плеилиста
 {"jsonrpc": "2.0", "method": "Playlist.GetPlaylists", "id": 1}
 
+Връща дължината на видео клипът
+{"jsonrpc":"2.0", "method":"Player.GetProperties", "params":{"playerid":' + playerId + ', "properties":["time", "totaltime"]},"id":1}
 
 
 
