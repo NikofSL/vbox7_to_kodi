@@ -12,7 +12,7 @@ using Newtonsoft.Json.Linq;
 using System.Threading;
 using System.Security.Authentication;
 using Vbox7_Download_GUI;
-
+using System.Text.RegularExpressions;
 
 namespace Vbox7_To_Kodi_GUI
 {
@@ -145,6 +145,7 @@ namespace Vbox7_To_Kodi_GUI
             string video_title = "";
             string subs_url = "";
             bool have_subs = false;
+            string author = "";
 
 
             try
@@ -189,17 +190,91 @@ namespace Vbox7_To_Kodi_GUI
                 using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
                 using (Stream stream = response.GetResponseStream())
                 using (StreamReader reader = new StreamReader(stream, Encoding.GetEncoding("utf-8")))
+                //using (StreamReader reader = new StreamReader(stream, Encoding.GetEncoding("windows-1251")))
                 {
                     html = reader.ReadToEnd();
+                    author = html.Remove(0, 18);
+                    author = author.Remove(author.Length - 3);
                 }
-                MessageBox.Show(html);
             }
             catch (Exception)
             {
 
                // throw;
             }
-           
+
+            // The encoding.
+            string utf8String = author;
+            //MessageBox.Show(utf8String);
+            //string utf8String = "Ð¢";
+            //string utf8String = "Ð¢Ðµ ÐºÐ°Ð·Ð°ÑÐ°,ÑÐµ ÑÑÑÐ°ÑÐ»Ð¸Ð²ÑÐ¸ÑÐµ Ð±ÑÐ³Ð°Ñ.\\";
+            // copy the string as UTF-8 bytes.
+            byte[] utf8Bytes = new byte[utf8String.Length];
+            for (int i = 0; i < utf8String.Length; ++i)
+            {
+                //Debug.Assert( 0 <= utf8String[i] && utf8String[i] <= 255, "the char must be in byte's range");
+                utf8Bytes[i] = (byte)utf8String[i];
+            }
+            author = Encoding.UTF8.GetString(utf8Bytes, 0, utf8Bytes.Length);
+            author = author.Replace("\\\"", "\'");
+            author = author.Replace("<br>", "\n");
+            //author = author.Replace("\"", "\'");
+
+            string[] separatingStrings = { "}," };
+            //string text = "one<<two......three<four";
+            //System.Console.WriteLine($"Original text: '{text}'");
+            string[] words_sub = author.Split(separatingStrings, System.StringSplitOptions.RemoveEmptyEntries);
+            //System.Console.WriteLine($"{words.Length} substrings in text:");
+
+            //String unescapedString = Regex.Unescape(author);
+            List<JObject> json_sub_list = new List<JObject>();
+            JObject json_sub = new JObject();
+            JObject[] keyValuePairs = new JObject[words_sub.Length];
+            for (int i = 0; i < words_sub.Length; i++)
+            {
+               // this.richTextBox1.AppendText(words_sub[i] + "}" + "\r\n");
+
+                if (i != words_sub.Length-1)
+                {
+                    json_sub = JObject.Parse(words_sub[i] + "}");
+                    //this.richTextBox1.AppendText(words_sub[i] + "}" + "\r\n");
+                    json_sub_list.Add(json_sub);
+
+                    keyValuePairs[i] = json_sub;
+                }
+                else
+                {
+                    //this.richTextBox1.AppendText(words_sub[i]);
+                    json_sub = JObject.Parse(words_sub[i]);
+                    json_sub_list.Add(json_sub);
+                    keyValuePairs[i] = json_sub;
+                }
+            }
+            int row = 0;
+            string subs = null;
+            for (int i = 0; i < keyValuePairs.Length; i++)
+            {
+                row += 1;
+                subs += row.ToString() + "\n";
+                if (TimeSpan.FromSeconds((double)json_sub_list[i]["f"]) == TimeSpan.FromSeconds((double)json_sub_list[i]["t"]))
+                {
+                    subs += TimeSpan.FromSeconds((double)json_sub_list[i]["f"]) + " --> " + TimeSpan.FromSeconds((double)json_sub_list[i]["t"] + 1) + "\n";
+                }
+                else
+                {
+                    subs += TimeSpan.FromSeconds((double)json_sub_list[i]["f"]) + " --> " + TimeSpan.FromSeconds((double)json_sub_list[i]["t"]) + "\n";
+                }
+                subs += (string)json_sub_list[i]["s"] + "\n";
+                subs += "\n\n";
+            }
+            this.richTextBox1.AppendText(subs);
+            //MessageBox.Show(" " + TimeSpan.FromSeconds((double)json_sub_list[40]["f"]));
+
+
+             //MessageBox.Show(author);
+
+            ///          https://www.vbox7.com/play:8b60f1b2
+
             ////Encoding
             //byte[] mybyte = System.Text.Encoding.UTF8.GetBytes(html);
             //string returntext = System.Convert.ToBase64String(mybyte);
@@ -213,7 +288,7 @@ namespace Vbox7_To_Kodi_GUI
             //mybyte = System.Convert.FromBase64String(returntext);
             //returntext = System.Text.Encoding.UTF8.GetString(mybyte);
 
-            
+
 
             //if (have_url)
             //{
@@ -297,5 +372,62 @@ namespace Vbox7_To_Kodi_GUI
         {
             downloadSubs();
         }
+
+
+        ////////////////////////////////////////////////////////////////////////////
+        ///
+
+
+        static string Decode(string input)
+        {
+            var sb = new StringBuilder();
+            int position = 0;
+            var bytes = new List<byte>();
+            while (position < input.Length)
+            {
+                char c = input[position++];
+                if (c == '\\')
+                {
+                    if (position < input.Length)
+                    {
+                        c = input[position++];
+                        if (c == 'x' && position <= input.Length - 2)
+                        {
+                            var b = Convert.ToByte(input.Substring(position, 2), 16);
+                            position += 2;
+                            bytes.Add(b);
+                        }
+                        else
+                        {
+                            AppendBytes(sb, bytes);
+                            sb.Append('\\');
+                            sb.Append(c);
+                        }
+                        continue;
+                    }
+                }
+                AppendBytes(sb, bytes);
+                sb.Append(c);
+            }
+            AppendBytes(sb, bytes);
+            return sb.ToString();
+        }
+
+        private static void AppendBytes(StringBuilder sb, List<byte> bytes)
+        {
+            if (bytes.Count != 0)
+            {
+                //var str = System.Text.Encoding.UTF8.GetString(bytes.ToArray());
+                //var str = System.Text.Encoding.Unicode.GetString(bytes.ToArray());
+                var str = System.Text.Encoding.Default.GetString(bytes.ToArray());
+                //UnicodeEncoding unicode = new UnicodeEncoding();
+
+
+                sb.Append(str);
+                bytes.Clear();
+            }
+        }
     }
 }
+
+///          https://www.vbox7.com/play:8b60f1b2
