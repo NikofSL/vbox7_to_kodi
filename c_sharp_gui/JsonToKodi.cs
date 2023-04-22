@@ -13,9 +13,9 @@ namespace JsonToKodi
     public partial class Form1 : Form
     {
 
-        string username = "osmcLG";
-        string password = "parolalg";
-        string ipAddr = "192.168.1.11";
+        string username = "osmc";
+        string password = "osmc";
+        string ipAddr = "KODI-IP-ADDRESS";
         public Form1()
         {
             InitializeComponent();
